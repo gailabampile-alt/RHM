@@ -1,0 +1,16 @@
+{
+    "name": "gamal/hrm1.5",
+    "description": "HumaineRessources",
+    "type": "project",
+    "authors": [
+        {
+            "name": "gamma"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+        "phpoffice/phpspreadsheet": "^5.1",
+        "phpoffice/phpword": "^1.4",
+        "mpdf/mpdf": "^8.2"
+    }
+}

@@ -1,0 +1,70 @@
+VOIR AGENT_SIEGE
+SELECT 
+ag.matricule,ag.nom_ag,ag.postnom_ag,ag.prenom_ag,detail_agent_siege.siege_ID
+,detail_agent_siege.dateDebut,detail_agent_siege.dateFin,detail_agent_siege.creerPar,
+detail_agent_siege.modifierPar
+FROM t_agent AS ag
+INNER JOIN detail_agent_siege ON ag.matricule = detail_agent_siege.agent_ID 
+INNER JOIN t_siege AS sieg ON sieg.code_sieg = detail_agent_siege.siege_ID
+WHERE ag.activiter_ID = '01' AND detail_agent_siege.statut_ID = 'act';
+
+==============================BON
+SELECT 
+    t_agent.matricule,
+    t_agent.nom_ag,
+    t_agent.postnom_ag,
+    t_agent.prenom_ag,
+    t_agent.sexe_ag,
+    t_agent.dateNaiss_ag,
+    t_agent.dateEngagemnt_ag,
+    t_siege.code_sieg,
+    t_siege.libelle_sieg,
+    TIMESTAMPDIFF(YEAR, t_agent.dateNaiss_ag, CURDATE()) AS DiffDate,
+    (65 - TIMESTAMPDIFF(YEAR, t_agent.dateNaiss_ag, CURDATE())) AS ResultatCalcul,
+    CONCAT(DAY(t_agent.dateNaiss_ag), '/', MONTH(t_agent.dateNaiss_ag)) AS DateSortie_retraite
+FROM 
+    bdd_paie.t_agent 
+INNER JOIN 
+    bdd_paie.detail_agent_siege ON detail_agent_siege.agent_ID = t_agent.matricule
+INNER JOIN 
+    bdd_paie.t_siege ON t_siege.code_sieg = detail_agent_siege.siege_ID
+WHERE 
+    TIMESTAMPDIFF(YEAR, t_agent.dateNaiss_ag, CURDATE()) > 59 
+    AND t_agent.activiter_ID = '01';
+=================old
+SELECT 
+    t_agent.matricule,
+    t_agent.nom_ag,
+    t_agent.postnom_ag,
+    t_agent.prenom_ag,
+    t_agent.sexe_ag,
+    t_agent.dateNaiss_ag,
+    t_agent.dateEngagemnt_ag,
+    t_siege.code_sieg,
+    t_siege.libelle_sieg,
+    TIMESTAMPDIFF(YEAR, t_agent.dateNaiss_ag, CURDATE()) AS DiffDate,
+    (65-TIMESTAMPDIFF(YEAR, t_agent.dateNaiss_ag, CURDATE())) AS ResultatCalcul,
+    CONCAT(
+        FLOOR(TIMESTAMPDIFF(MONTH, t_agent.dateNaiss_ag, CURDATE()) / 12), 'ans ',
+        MOD(TIMESTAMPDIFF(MONTH, t_agent.dateNaiss_ag, CURDATE()), 12), 'mois ',
+        FLOOR(TIMESTAMPDIFF(DAY, t_agent.dateNaiss_ag + INTERVAL TIMESTAMPDIFF(YEAR, t_agent.dateNaiss_ag, CURDATE()) YEAR, CURDATE())), 'J'
+    ) AS AgeActuel, CONCAT(DAY(t_agent.dateNaiss_ag),'/',MONTH(t_agent.dateNaiss_ag)) AS DateSortie_retraite
+FROM 
+    bdd_paie.t_agent 
+INNER JOIN 
+    bdd_paie.detail_agent_siege ON detail_agent_siege.agent_ID = t_agent.matricule
+INNER JOIN 
+    bdd_paie.t_siege ON t_siege.code_sieg = detail_agent_siege.siege_ID
+WHERE 
+    TIMESTAMPDIFF(YEAR, t_agent.dateNaiss_ag, CURDATE()) > 59 
+    AND t_agent.activiter_ID = '01'
+
+
+=============================================================================
+STAGIAIRE 
+SELECT 
+stg.id_stg,stg.nom_stg,stg.postnom_stg,stg.prenom_stg,stg.sexe_stg,stg.etatCiv_stg,stg.nivEtude_stg,stg.siege_stg,
+stg.dir_stg,stg.pOrigi_stg,stg.pNaiss_stg,stg.dateNaiss,stg.dateDebut_stage,stg.statut_ID,stg.dateFin_stg,stg.histo_stg,stg.phone_stg,stg.adresse_stg,sieg.libelle_sieg,dir.libelle_dir
+FROM t_stagiare AS stg
+inner join t_siege AS sieg ON sieg.code_sieg = stg.siege_stg
+INNER JOIN t_direction AS dir ON dir.code_dir

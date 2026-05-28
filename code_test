@@ -1,0 +1,41 @@
+while($row = $reqInfoAgent->fetch())
+{
+    $cod_sieg = $row['code_sieg'];
+    $lib_sieg = $row['libelle_sieg'];
+    $matric = $row['matricule'];
+    $noms = $row['nom'];
+    $sexe = $row['sexe_ag'];
+    $activiter = $row['activiter_ID'];
+    $date_nais = $row['dateNaiss_ag'];
+    $date_eng = $row['dateEngagemnt_ag'];
+
+    // Si c'est le premier agent, initialisez le compteur
+    if ($current_siege === null) {
+        $compt = 1; // Initialiser le compteur pour le premier siège
+    } else if ($current_siege !== $row['code_sieg']) {
+        // Nouveau siège détecté
+        $pdf->BasicTable($header, $data); // Terminez la table actuelle
+        $pdf->ln(15);
+        $txt = "Fait à Kinshasa, Le ". date('d-m-Y');
+        $pdf->SetFont('Arial','',11);
+        $pdf->Cell(190,10,iconv('UTF-8', 'iso-8859-1',$txt),0,0,'C'); 
+        $pdf->ln(8);
+        $txt = "LAMA LUTSHIMA BIENVIEN";
+        $pdf->SetFont('Arial','B',12);
+        $pdf->Cell(190,10,iconv('UTF-8', 'iso-8859-1',$txt),0,0,'C');
+
+        $data = array(); // Réinitialisez le tableau de données
+        $pdf->AddPage(); // Commencez une nouvelle page
+        $pdf->header_data($row['code_sieg'], $row['libelle_sieg']); // Ajoutez l'en-tête de la nouvelle page
+
+        // Réinitialisez le compteur pour le nouveau siège
+        $compt = 1; // Réinitialiser le compteur à 1 pour le nouveau siège
+    } else {
+        // Si c'est le même siège, incrémentez le compteur
+        $compt++;
+    }
+
+    // Ajoutez les données à la table actuelle
+    $data[] = array($compt, $row['code_sieg'], $row['matricule'], $row['nom'], $row['sexe_ag'], $row['dateNaiss_ag'], $row['dateEngagemnt_ag']);
+    $current_siege = $row['code_sieg'];
+}

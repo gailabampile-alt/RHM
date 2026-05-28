@@ -1,0 +1,111 @@
+<?php
+    session_start();
+    include_once('sys_connexion.php');
+    include_once('sys_fonction.php');
+
+    if(isset($_POST['login'])){
+        /**Récuperation de donnée de l'utilisateur */
+        $req = $db->prepare('SELECT * FROM bdd_paie.t_utilisateurs WHERE (username=:username AND password =:passwords)
+            OR (username=:username AND token =:token)');
+        $req->bindvalue(':username',validation_donnees($_POST['username']));
+        //$req->bindvalue(':usernameToken',validation_donnees($_POST['username']));
+        $req->bindvalue(':passwords',validation_donnees($_POST['passwords']));
+        $req->bindvalue(':token',validation_donnees($_POST['passwords']));     
+        $req->execute();
+        $id_utilisateur = '';
+        $nom_utilisateur = '';
+        $mot_passe = '';
+        $token = '';
+        $validation = '';
+        $statut = '';
+        $droit_acces_utilisateur = '';
+        $nomAg = '';
+        $postnomAg = '';
+        $prenomAg = '';
+        
+       
+        while($result = $req->fetch()){
+            $id_utilisateur = $result['id_user'];
+            $nom_utilisateur = $result['username'];
+            $agent_ID = $result['agent_ID'];
+            $mot_passe = $result['password'];
+            $token = $result['token'];
+            $validation = $result['validation'];
+            $statut = $result['statut_ID'];
+            $droit_acces_utilisateur = $result['role_user_ID'];
+        }
+        /**Comparaison de donnée de l'utilisateur  selon les cas*/
+        if(($nom_utilisateur == validation_donnees($_POST['username']) 
+            && $mot_passe == validation_donnees($_POST['passwords'])) 
+            || ($nom_utilisateur == validation_donnees($_POST['username']) 
+            && $token == validation_donnees($_POST['passwords'])) ){
+             /**Test d aiguillage et accessibilité en fonction des champs valider et statut */
+             
+             if($validation == "Valide" && $statut == "act"){
+
+                $reqGetNomUtilisateur = $db->prepare('SELECT nom_ag,postnom_ag,prenom_ag FROM bdd_paie.t_agent WHERE matricule = :matricule');
+                $reqGetNomUtilisateur->bindvalue(':matricule',$agent_ID);
+                $reqGetNomUtilisateur->execute();
+
+                while($resGetNomUtilisateur = $reqGetNomUtilisateur->fetch()){
+                    $nomAg = $resGetNomUtilisateur['nom_ag'];
+                    $postnomAg = $resGetNomUtilisateur['postnom_ag'];
+                    $prenomAg = $resGetNomUtilisateur['prenom_ag'];
+                }
+
+                $_SESSION['nomComplet'] = $nomAg.' '.$postnomAg.' '.$prenomAg;
+                $_SESSION['id_utilisateur'] = $id_utilisateur;
+                $_SESSION['droitDacces'] = $droit_acces_utilisateur;
+
+                /*Insertion de l'historique*/
+                $reqHistorique =  $db->prepare('INSERT INTO bdd_paie.t_historique_conn (utilisateur_ID,date_con,heure_con)
+                VALUES (:utilisateur_ID,:date_con,:heure_con)');
+                $reqHistorique->bindvalue(':utilisateur_ID',$_SESSION['id_utilisateur']);
+                //$reqHistorique->bindvalue(':utilisateur_ID',$_SESSION['id']);
+                $date = date("Y-m-d");
+                $reqHistorique->bindvalue(':date_con',$date);
+                $heure = date("H:i:s");
+                $reqHistorique->bindvalue(':heure_con',$heure);
+
+                $reqHistorique->execute();
+                $last_id = $db->lastInsertId();
+
+                $_SESSION['id_histori_con']  = $last_id;
+                /*Insertion de l'historique*/
+
+                header('location:accueil.php');
+                exit();
+                
+             }elseif ($validation == "Valide" && $statut == "desac") {
+                $_SESSION['message']  = "Cette utilisateur est désactivé !!!\n veuillez contacté votre admin";
+                $_SESSION['typeMsg']  = "warning";
+
+                header('location:index.php');
+                exit();
+
+             }elseif ($validation == "Non_Valide" && $statut == "act"){
+                //$_SESSION['message']  = "Nous vous avons envoyer un mail à votre adresse professionnel\n consulter le";
+                //$_SESSION['typeMsg']  = "info";
+                header('location:frm_validationCompte.php');
+                //header('location:www.mrnuage.com/mail_pacsoftware.php?to=&sujet&');
+                
+             }elseif($validation == "Non_Valide" && $statut == "desac"){
+                $_SESSION['message']  = "Cette utilisateur est désactivé et son compte n'est pas valider !!!";
+                $_SESSION['typeMsg']  = "warning";
+
+                header('location:index.php');
+                exit();
+
+             }
+
+        }else{
+            $_SESSION['message']  = "Cette utilisateur n'existe pas !!!";
+            $_SESSION['typeMsg']  = "danger";
+
+            header('location:index.php');
+            exit();
+        }
+
+    }
+
+?>
