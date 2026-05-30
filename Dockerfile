@@ -17,7 +17,9 @@ RUN set -eux; \
     apt-get clean; \
     rm -rf /var/lib/apt/lists/*
 
-RUN a2dismod mpm_event && a2enmod mpm_prefork && a2enmod rewrite
+RUN rm -f /etc/apache2/mods-enabled/mpm_event.conf /etc/apache2/mods-enabled/mpm_event.load \
+    && rm -f /etc/apache2/mods-enabled/mpm_worker.conf /etc/apache2/mods-enabled/mpm_worker.load \
+    && a2enmod mpm_prefork rewrite
 
 RUN printf '<Directory /var/www/html>\n\
     AllowOverride All\n\
