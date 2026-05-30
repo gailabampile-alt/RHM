@@ -29,8 +29,8 @@ WORKDIR /var/www/html
 
 COPY . .
 
-RUN mkdir -p photoAgent photoStagiaire Documents DocumentsStagiaire fichierEnf_Agent rapport rapport_xlsx \
-    && chown -R www-data:www-data /var/www/html \
+RUN mkdir -p photoAgent photoStagiaire Documents DocumentsStagiaire fichierEnf_Agent rapport rapport_xlsx 2>/dev/null || true; \
+    chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html \
     && chmod -R 777 photoAgent photoStagiaire Documents DocumentsStagiaire fichierEnf_Agent rapport rapport_xlsx
 
